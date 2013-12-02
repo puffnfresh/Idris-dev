@@ -8,10 +8,12 @@ data IOExcept : Type -> Type -> Type where
 instance Functor (IOExcept e) where
      map f (ioM fn) = ioM (map (map f) fn)
 
-instance Applicative (IOExcept e) where
-     pure x = ioM (pure (pure x))
+instance Apply (IOExcept e) where
      (ioM f) <$> (ioM a) = ioM (do f' <- f; a' <- a
                                    return (f' <$> a'))
+
+instance Applicative (IOExcept e) where
+     pure x = ioM (pure (pure x))
 
 instance Monad (IOExcept e) where
      (ioM x) >>= k = ioM (do x' <- x;

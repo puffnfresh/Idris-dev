@@ -33,12 +33,13 @@ instance Functor CGI where
     map f (MkCGI c) = MkCGI (\s => do (a, i) <- c s
                                       return (f a, i))
 
-instance Applicative CGI where
-    pure v = MkCGI (\s => return (v, s))
-
+instance Apply CGI where
     (MkCGI a) <$> (MkCGI b) = MkCGI (\s => do (f, i) <- a s
                                               (c, j) <- b i
                                               return (f c, j))
+
+instance Applicative CGI where
+    pure v = MkCGI (\s => return (v, s))
 
 instance Monad CGI where {
     (>>=) (MkCGI f) k = MkCGI (\s => do v <- f s

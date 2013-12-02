@@ -243,43 +243,52 @@ instance Functor (Either e) where
 
 ---- Applicative instances
 
+instance Apply PrimIO where
+    am <$> bm = prim_io_bind am (\f => prim_io_bind bm (prim_io_return . f))
+
 instance Applicative PrimIO where
     pure = prim_io_return
 
-    am <$> bm = prim_io_bind am (\f => prim_io_bind bm (prim_io_return . f))
-
-instance Applicative IO where
-    pure x = io_return x
+instance Apply IO where
     f <$> a = io_bind f (\f' =>
                 io_bind a (\a' =>
                   io_return (f' a')))
 
-instance Applicative Maybe where
-    pure = Just
+instance Applicative IO where
+    pure x = io_return x
 
+instance Apply Maybe where
     (Just f) <$> (Just a) = Just (f a)
     _        <$> _        = Nothing
 
-instance Applicative (Either e) where
-    pure = Right
+instance Applicative Maybe where
+    pure = Just
 
+instance Apply (Either e) where
     (Left a) <$> _          = Left a
     (Right f) <$> (Right r) = Right (f r)
     (Right _) <$> (Left l)  = Left l
 
+instance Applicative (Either e) where
+    pure = Right
+
+instance Apply List where
+    fs <$> vs = concatMap (\f => map f vs) fs
+
 instance Applicative List where
     pure x = [x]
 
-    fs <$> vs = concatMap (\f => map f vs) fs
+instance Apply (Vect k) where
+    fs <$> vs = zipWith ($) fs vs
 
 instance Applicative (Vect k) where
     pure = replicate _
 
-    fs <$> vs = zipWith ($) fs vs
+instance Apply Stream where
+  (<$>) = zipWith ($)
 
 instance Applicative Stream where
   pure = repeat
-  (<$>) = zipWith ($)
 
 ---- Alternative instances
 
